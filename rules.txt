@@ -1,0 +1,6 @@
+R1 — A transaction is suspicious_amount if it's both large AND round numbered (large alone is too common; the combination signals scripted behavior)
+R2 — An account is suspicious_account if it's both high velocity AND repeating amounts (two independent signals of automation)
+R3 — A transaction is suspicious if it's a TRANSFER/CASH_OUT AND its amount pattern is suspicious
+R4 — A transaction is suspicious if it's a TRANSFER/CASH_OUT AND the account that sent it is suspicious (this is where the graph edge sends connects account behavior to the transaction)
+R5 — A transaction is fraud if it's suspicious with high enough confidence
+R6 — The receiving account gets flagged fraud_risk if it received a fraudulent transaction — this is the graph propagation that makes PyReason special and different from any flat ML model
