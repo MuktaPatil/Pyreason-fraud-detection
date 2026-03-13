@@ -127,13 +127,13 @@ df_rel.to_csv('paysim_filtered.csv', index=False)
 ### 4. Run the pipeline
 ```bash
 # Step 1 — Build knowledge graph
-python 01_build_graph.py
+python build_graph.py
 
 # Step 2 — Run PyReason-style inference
-python 03_pyreason_manual.py
+python pyreason_manual.py
 
 # Step 3 — Evaluate vs ML baselines
-python 04_evaluate.py
+python evaluate.py
 ```
 
 ### 5. Run the Streamlit demo
@@ -168,4 +168,3 @@ pyreason-fraud-detection/
 
 ---
 
-*Built as part of a graduate project at Syracuse University's iSchool.*
