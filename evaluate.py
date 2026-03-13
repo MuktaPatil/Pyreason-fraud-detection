@@ -1,8 +1,7 @@
-# ============================================================
-# 04_evaluate.py
+# evaluate.py
 # Phase 5 — Evaluation & Comparison
 # PyReason results vs ML baselines (Logistic Regression + Random Forest)
-# ============================================================
+
 
 import pandas as pd
 import numpy as np
@@ -24,14 +23,13 @@ print(f"Loaded {len(df):,} transactions")
 print(f"Fraud cases: {df['isFraud'].sum():,}")
 print(f"PyReason flagged: {df['pyreason_flagged'].sum():,}")
 
-# ── 2. Define features for ML baselines ───────────────────────
 # Same features PyReason used — fair comparison
 FEATURES = ['is_large_amount', 'is_high_velocity',
             'is_round_amount', 'is_repeat_amount']
 X = df[FEATURES].values
 y = df['isFraud'].values
 
-# ── 3. Train/test split ───────────────────────────────────────
+# Train/test split
 # Stratified split — guarantees fraud cases in both train and test
 from sklearn.model_selection import train_test_split
 
@@ -48,7 +46,7 @@ y_pr = df.loc[idx_test, 'pyreason_flagged'].values
 print(f"\nTrain size: {len(X_train):,} | Test size: {len(X_test):,}")
 print(f"Fraud in test: {y_test.sum():,}")
 
-# ── 4. Logistic Regression baseline ──────────────────────────
+# Logistic Regression baseline 
 scaler = StandardScaler()
 X_train_sc = scaler.fit_transform(X_train)
 X_test_sc  = scaler.transform(X_test)
@@ -57,7 +55,7 @@ lr = LogisticRegression(class_weight='balanced', random_state=42)
 lr.fit(X_train_sc, y_train)
 y_lr = lr.predict(X_test_sc)
 
-# ── 5. Random Forest baseline ─────────────────────────────────
+#  Random Forest baseline 
 rf = RandomForestClassifier(
     n_estimators    = 100,
     class_weight    = 'balanced',
@@ -67,7 +65,7 @@ rf = RandomForestClassifier(
 rf.fit(X_train, y_train)
 y_rf = rf.predict(X_test)
 
-# ── 6. Compute metrics ────────────────────────────────────────
+# Compute metrics 
 def metrics(y_true, y_pred, name):
     return {
         'Model'    : name,
@@ -87,9 +85,8 @@ results = results.set_index('Model').round(4)
 print("\n=== Evaluation Results ===")
 print(results.to_string())
 
-# ── 7. Explainability note ────────────────────────────────────
-# PyReason's real advantage isn't always raw F1 — it's that
-# every flagged transaction has a traceable rule chain.
+# Explainability note 
+# PyReason's real advantage isn't always raw F1 — it's that every flagged transaction has a traceable rule chain.
 # Print a reminder of this for the writeup.
 print("""
 === PyReason vs ML — Key Distinction ===
@@ -108,7 +105,7 @@ PyReason gives a rule trace per flagged transaction:
 Every flag is auditable. That matters in FinTech.
 """)
 
-# ── 8. Visualizations ─────────────────────────────────────────
+#  Visualizations 
 fig = plt.figure(figsize=(15, 10))
 gs  = gridspec.GridSpec(2, 3, figure=fig, hspace=0.4, wspace=0.35)
 
@@ -144,4 +141,5 @@ plt.suptitle('PyReason Fraud Detection — Evaluation', fontsize=14, y=1.01)
 plt.savefig('data/evaluation_results.png', bbox_inches='tight', dpi=150)
 plt.show()
 print("Saved: data/evaluation_results.png")
+
 print("\nPhase 5 complete!")
