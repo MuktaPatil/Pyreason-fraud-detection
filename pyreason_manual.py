@@ -14,19 +14,19 @@ import pickle
 import pandas as pd
 from collections import defaultdict
 
-# ── 1. Load graph ─────────────────────────────────────────────
+# Load graph 
 with open('graph/fraud_graph.pkl', 'rb') as f:
     G = pickle.load(f)
 
 print(f"Graph loaded: {G.number_of_nodes():,} nodes, {G.number_of_edges():,} edges")
 
-# ── 2. Annotation store ───────────────────────────────────────
+# Annotation store 
 # For every node, store a dict of predicate → [lower, upper]
 # This is exactly what PyReason's interpretation object holds
 annotations = defaultdict(dict)   # annotations[node][predicate] = [l, u]
 rule_trace   = defaultdict(list)  # rule_trace[node] = list of rules that fired
 
-# ── 3. Helper functions ───────────────────────────────────────
+#  Helper functions 
 def set_annotation(node, predicate, lower, upper, fired_by=None):
     """Write annotation to a node. Only update if new bounds are stronger."""
     current = annotations[node].get(predicate, [0.0, 0.0])
@@ -47,7 +47,7 @@ def meets_threshold(node, predicate, min_lower=0.0):
     """Check if a predicate is active (lower bound above threshold)."""
     return get_annotation(node, predicate)[0] >= min_lower
 
-# ── 4. Stamp initial facts ────────────────────────────────────
+#Stamp initial facts 
 # Read node attributes from graph and convert to annotation intervals
 # This is what PyReason calls "adding facts"
 print("\nStamping initial facts onto nodes...")
@@ -99,7 +99,7 @@ for node, data in G.nodes(data=True):
     set_annotation(node, 'high_velocity', max_hv, max_hv)
     set_annotation(node, 'repeat_amount', max_ra, max_ra)
 
-# ── 5. Rule definitions ───────────────────────────────────────
+#  Rule definitions 
 # Each rule is a function that:
 #   - checks body conditions on relevant nodes
 #   - calls set_annotation on head nodes
@@ -220,7 +220,7 @@ def rule_6_fraud_propagation(G):
 
 # ── 6. Bounded fixpoint computation ───────────────────────────
 # This is the core of PyReason's engine.
-# We fire all rules repeatedly until nothing changes.
+#  Fire all rules repeatedly until nothing changes.
 # Each iteration = one "timestep" in PyReason terminology.
 # We cap at MAX_TIMESTEPS to guarantee termination.
 
@@ -247,7 +247,7 @@ for t in range(MAX_TIMESTEPS):
         print(f"  Fixpoint reached at timestep {t+1}")
         break
 
-# ── 7. Extract results ────────────────────────────────────────
+#  Results extraction
 flagged_tx = []
 flagged_accounts = []
 
@@ -280,7 +280,7 @@ print(f"\nResults:")
 print(f"  Transactions flagged as fraud : {len(df_flagged):,}")
 print(f"  Accounts flagged as fraud_risk: {len(df_risk):,}")
 
-# ── 8. Merge with ground truth ────────────────────────────────
+# Merge with ground truth 
 df_sample = pd.read_csv('data/paysim_sample_features.csv')
 df_sample['tx_id'] = ['TX_' + str(i) for i in df_sample.index]
 
@@ -291,7 +291,7 @@ df_eval = df_sample[['tx_id', 'isFraud', 'amount', 'type',
 flagged_set = set(df_flagged['node'].tolist()) if len(df_flagged) > 0 else set()
 df_eval['pyreason_flagged'] = df_eval['tx_id'].isin(flagged_set).astype(int)
 
-# ── 9. Rule trace (explainability) ────────────────────────────
+# Rule trace (explainability)
 print("\n=== Rule trace for first 3 flagged transactions ===")
 for _, row in df_flagged.head(3).iterrows():
     print(f"\n  {row['node']}:")
@@ -299,7 +299,7 @@ for _, row in df_flagged.head(3).iterrows():
         print(f"    {pred:<25} [{bounds[0]:.2f}, {bounds[1]:.2f}]")
     print(f"    Rules fired: {row['rules_fired']}")
 
-# ── 10. Save results ──────────────────────────────────────────
+# Save results 
 df_eval.to_csv('data/inference_results.csv', index=False)
 df_flagged.drop(columns=['annotations','rules_fired']).to_csv(
     'data/flagged_transactions.csv', index=False)
@@ -309,4 +309,5 @@ print("\nSaved:")
 print("  data/inference_results.csv")
 print("  data/flagged_transactions.csv")
 print("  data/flagged_accounts.csv")
+
 print("\nRun 04_evaluate.py next.")
