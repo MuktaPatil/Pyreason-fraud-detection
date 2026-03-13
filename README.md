@@ -11,7 +11,7 @@
 
 ## Live Demo
 
-👉 **[Try FraudLens on Streamlit](STREAMLIT_LINK_HERE)**
+👉 **[Try FraudLens on Streamlit](https://pyreason-fraud-detection-app.streamlit.app/)**
 
 Upload `paysim_demo.csv` to see the reasoning engine flag transactions in real time with full rule traces.
 
