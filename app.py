@@ -1,8 +1,4 @@
 # Streamlit code for the app
-# ============================================================
-# app.py
-# FraudLens — PyReason Fraud Detection Dashboard
-# ============================================================
 
 import streamlit as st
 import pandas as pd
@@ -12,19 +8,19 @@ import pickle
 import os
 from collections import defaultdict
 
-# ── Page config ───────────────────────────────────────────────
+
 st.set_page_config(
     page_title="FraudLens",
     page_icon="🔍",
     layout="wide"
 )
 
-# ── Header ────────────────────────────────────────────────────
+
 st.title("🔍 FraudLens")
 st.caption("Annotated Logic Fraud Detection using PyReason-style Reasoning")
 st.markdown("---")
 
-# ── Sidebar ───────────────────────────────────────────────────
+
 st.sidebar.header("Settings")
 large_amount_pct = st.sidebar.slider(
     "Large amount threshold (percentile)", 80, 99, 95)
@@ -40,7 +36,7 @@ st.sidebar.markdown(
     "no black boxes."
 )
 
-# ── File upload ───────────────────────────────────────────────
+#  File upload 
 st.subheader("Upload transaction data")
 uploaded = st.file_uploader(
     "Upload a PaySim-format CSV (needs: step, type, amount, nameOrig, nameDest, isFraud)",
@@ -51,7 +47,7 @@ if uploaded is None:
     st.info("Upload a CSV to get started. You can use paysim_filtered.csv from your data/ folder.")
     st.stop()
 
-# ── Load & validate ───────────────────────────────────────────
+
 df_raw = pd.read_csv(uploaded, nrows=2000)
 required = ['step','type','amount','nameOrig','nameDest']
 missing = [c for c in required if c not in df_raw.columns]
@@ -88,7 +84,7 @@ df['is_high_velocity'] = (df['max_hourly_tx'] > velocity_threshold).astype(int)
 df['is_repeat_amount'] = df['nameOrig'].isin(repeat_accounts).astype(int)
 df['tx_id']            = ['TX_' + str(i) for i in df.index]
 
-# ── Build graph ───────────────────────────────────────────────
+#  Build graph 
 @st.cache_data(show_spinner="Building knowledge graph...")
 def build_graph(_df):
     G = nx.DiGraph()
@@ -114,7 +110,7 @@ def build_graph(_df):
 
 G = build_graph(df)
 
-# ── Reasoning engine ──────────────────────────────────────────
+# Reasoning engine 
 annotations = defaultdict(dict)
 rule_trace   = defaultdict(list)
 
@@ -155,7 +151,7 @@ for node, data in G.nodes(data=True):
     set_ann(node, 'high_velocity', max_hv, max_hv)
     set_ann(node, 'repeat_amount', max_ra, max_ra)
 
-# Rules
+# Rules: they rule
 def run_rules(G):
     changed = False
     for node, data in G.nodes(data=True):
@@ -196,7 +192,7 @@ with st.spinner("Running annotated logic reasoning..."):
         if not run_rules(G):
             break
 
-# ── Results ───────────────────────────────────────────────────
+#  Results 
 flagged = []
 for idx, row in df.iterrows():
     tx_id    = row['tx_id']
@@ -225,7 +221,7 @@ for idx, row in df.iterrows():
 df_results = pd.DataFrame(flagged)
 n_flagged  = (df_results['flagged'] == '🚨 Fraud').sum() if len(df_results) > 0 else 0
 
-# ── Metrics row ───────────────────────────────────────────────
+# Metrics show
 st.markdown("---")
 st.subheader("Results")
 col1, col2, col3, col4 = st.columns(4)
@@ -234,7 +230,7 @@ col2.metric("Flagged as fraud",       f"{n_flagged:,}")
 col3.metric("Large amount threshold", f"${LARGE_AMOUNT_THRESHOLD:,.0f}")
 col4.metric("Converged at timestep",  f"{t+1}")
 
-# ── Results table ─────────────────────────────────────────────
+#Results tabel
 st.markdown("---")
 st.subheader("Flagged transactions")
 
@@ -246,7 +242,7 @@ else:
         display_cols.append('ground_truth')
     st.dataframe(df_results[display_cols], use_container_width=True, height=300)
 
-# ── Rule trace explorer ───────────────────────────────────────
+#Rule trace [Dora the] explorer
 st.markdown("---")
 st.subheader("Rule trace explorer")
 st.caption("Select any transaction to see exactly why it was flagged — full audit trail.")
@@ -278,4 +274,5 @@ else:
 
     st.markdown("**Rules that fired (in order)**")
     for i, rule in enumerate(row['rule_trace']):
+
         st.write(f"{i+1}. {rule}")
