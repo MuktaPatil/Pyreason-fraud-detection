@@ -1,1 +1,6 @@
-# pip install pyreason networkx pandas numpy matplotlib scikit-learn streamlit
+pandas
+numpy
+networkx
+scikit-learn
+matplotlib
+streamlit
